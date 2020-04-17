@@ -30,15 +30,13 @@ jobs:
       - name: package
         run: bundle exec rake build
 
-      - name: Publish to Rubygems
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          mkdir -p $HOME/.gem
-          touch $HOME/.gem/credentials
-          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          chmod 0600 $HOME/.gem/credentials
-          bundle exec rake release
-        env:
-          GEM_HOST_API_KEY: ${{secrets.RUBYGEMS_AUTH_TOKEN}}
+      - name: store package name
+        id: package-name
+        run: echo "::set-output name=file::$(ls -1 pkg/)"
 
+      - name: store artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: ${{ steps.package-name.outputs.file }}
 
